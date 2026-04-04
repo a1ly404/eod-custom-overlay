@@ -2,7 +2,7 @@
   "_comment_mode": "mode: manual or auto",
   "mode": "manual",
   "_comment_branch": "branch to watch and pull",
-  "branch": "main",
+  "branch": "eod-commentator-overlay",
   "_comment_remote": "git remote to pull from",
   "remote": "origin",
   "_comment_checkIntervalSeconds": "auto mode polling interval in seconds",

@@ -1,9 +1,9 @@
 ````markdown
-# EoD Custom Overlay for CRG ScoreBoard
+# EoD Commentator Overlay for CRG ScoreBoard
 
-A custom broadcast overlay for [CRG ScoreBoard](https://github.com/rollerderby/crg).  
-Team bar colours update live, text contrast is automatically optimized.  
-**Includes optional auto-update feature** — the overlay can pull the latest changes from this repo on a schedule you set.
+A full-screen roster display overlay for commentators. Shows both team lineups side-by-side in large, easy-to-read cards. Perfect for booth commentary and live broadcast commentary setup.
+
+**This is the `eod-commentator-overlay` branch.** For the standard team-bar broadcast overlay, switch to the `main` branch.
 
 ---
 
@@ -13,10 +13,10 @@ Team bar colours update live, text contrast is automatically optimized.
 Clone or download this entire repository. You'll get a folder called `eod-custom-overlay/`.
 
 ### Step 2: Copy into CRG
-Copy the **entire `eod-custom-overlay/` folder** into your CRG installation:
+Copy the **entire `eod-commentator-overlay/` folder** into your CRG installation:
 
 ```
-<CRG root>/html/custom/eod-custom-overlay/
+<CRG root>/html/custom/eod-commentator-overlay/
 ```
 
 Your CRG root is wherever you unzipped CRG — it contains the `lib/crg-scoreboard.jar` file.  
@@ -29,29 +29,27 @@ Start CRG normally (double-click `scoreboard.sh` on Mac/Linux, or the `.bat` / `
 
 ---
 
-## Open the Admin Panel
+## Open the Commentator Overlay
 
 In any web browser (on the CRG computer or any device on the same network):
 
 ```
-http://<CRG-IP>:8000/custom/eod-custom-overlay/admin/index.html
+http://<CRG-IP>:8000/custom/eod-commentator-overlay/index.html
 ```
 
-The admin panel shows a live preview of the overlay and lets you customize colours and elements.
+The overlay will display both team rosters side-by-side in large, readable cards. Skater numbers appear in yellow; names in white, all in uppercase.
 
 ---
 
-## Give the Overlay URL to Your Stream Operator
+## Use Cases
 
-For OBS / vMix as a Browser Source:
+- **Booth commentary**: Load in a second monitor for the commentators to follow lineup changes.
+- **Streaming reference**: Load in OBS/vMix as a Browser Source for graphic overlays or reference footage.
+- **Live event**: Display on a tablet or projector for team officials to track skater positions.
 
-```
-http://<CRG-IP>:8000/custom/eod-custom-overlay/index.html?home=%23HEX&away=%23HEX
-```
+---
 
-Replace `HEX` with the team's brand colour (e.g. `%231f3264` for navy `#1f3264`).
-
-> **Default port is 8000.** If your CRG runs on a different port, swap it in the URLs above.
+## Optional: Auto-Update Setup
 
 ---
 
