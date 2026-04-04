@@ -1,40 +1,114 @@
-# Derby CRG Overlay
+````markdown
+# EoD Custom Overlay for CRG ScoreBoard
 
 A custom broadcast overlay for [CRG ScoreBoard](https://github.com/rollerderby/crg).  
-Team bar colours update live, text contrast is WCAG-checked automatically.
+Team bar colours update live, text contrast is automatically optimized.  
+**Includes optional auto-update feature** — the overlay can pull the latest changes from this repo on a schedule you set.
 
 ---
 
-## How to install on a CRG computer
+## Quick Start (Drag & Drop Installation)
 
-1. Copy the **entire `crg-overlay/` folder** into your CRG installation at:
+### Step 1: Download the overlay
+Clone or download this entire repository. You'll get a folder called `eod-custom-overlay/`.
 
-   ```
-   <CRG root>/html/custom/derby-overlay/
-   ```
+### Step 2: Copy into CRG
+Copy the **entire `eod-custom-overlay/` folder** into your CRG installation:
 
-   Your CRG root is wherever you unzipped CRG — it contains the `lib/crg-scoreboard.jar` file.  
-   The `html/custom/` folder may not exist yet; create it if needed.
+```
+<CRG root>/html/custom/eod-custom-overlay/
+```
 
-2. Start CRG normally (double-click `scoreboard.sh` on Mac/Linux, or the `.exe` on Windows).
+Your CRG root is wherever you unzipped CRG — it contains the `lib/crg-scoreboard.jar` file.  
+The `html/custom/` folder may not exist yet; create it if needed.
 
-3. Open the **admin panel** in any browser (on the CRG computer or any device on the same network):
+### Step 3: Restart CRG
+Start CRG normally (double-click `scoreboard.sh` on Mac/Linux, or the `.bat` / `.exe` on Windows).
 
-   ```
-   http://<CRG-IP>:8000/custom/derby-overlay/admin/index.html
-   ```
+✅ **That's it! CRG will find the overlay automatically.**
 
-   The admin panel shows a live preview of the overlay on the right side of the screen.
+---
 
-4. Give the **overlay URL** to your stream operator to load in OBS/vMix as a Browser Source:
+## Open the Admin Panel
 
-   ```
-   http://<CRG-IP>:8000/custom/derby-overlay/index.html?home=%23HEX&away=%23HEX
-   ```
+In any web browser (on the CRG computer or any device on the same network):
 
-   Replace `HEX` with the team's brand colour (e.g. `%231f3264` for navy `#1f3264`).
+```
+http://<CRG-IP>:8000/custom/eod-custom-overlay/admin/index.html
+```
+
+The admin panel shows a live preview of the overlay and lets you customize colours and elements.
+
+---
+
+## Give the Overlay URL to Your Stream Operator
+
+For OBS / vMix as a Browser Source:
+
+```
+http://<CRG-IP>:8000/custom/eod-custom-overlay/index.html?home=%23HEX&away=%23HEX
+```
+
+Replace `HEX` with the team's brand colour (e.g. `%231f3264` for navy `#1f3264`).
 
 > **Default port is 8000.** If your CRG runs on a different port, swap it in the URLs above.
+
+---
+
+## Optional: Auto-Update Setup
+
+The overlay can automatically pull the latest changes from this repository on a schedule. This is **completely optional** — you don't need to do this if you prefer to update manually.
+
+### How it works
+
+- The updater runs **independently** from CRG (not part of the CRG app).
+- It pulls changes from GitHub on the schedule you set.
+- All update files stay in the `eod-custom-overlay/` folder — **nothing interferes with CRG**.
+- CRG only sees the overlay HTML/CSS/JS files; it ignores everything else.
+
+### Enable auto-updates (Windows)
+
+1. **Open `updater.config.json`** in the `eod-custom-overlay/` folder.
+2. Set your update mode:
+
+   ```json
+   {
+     "mode": "scheduled",        ← Change from "manual" to "scheduled"
+     "interval_minutes": 60,     ← Update every 60 minutes (change as needed)
+     "branch": "main",           ← Branch to pull from (default: main)
+     "notify": true              ← Show notifications (optional)
+   }
+   ```
+
+3. **Double-click `Run-Updater.cmd`** to start the auto-update service.
+   - A command window will pop up and run the updater in the background.
+   - You can close the window; the service keeps running.
+
+4. **To stop auto-updates**, double-click `Stop-Updater.cmd`.
+
+### Enable auto-updates (Mac/Linux or Git Bash on Windows)
+
+1. **Open `updater.config.json`** and set `mode` to `"scheduled"`.
+2. **Open a terminal** in the `eod-custom-overlay/` folder.
+3. Run:
+
+   ```bash
+   bash scripts/auto-update-overlay.sh
+   ```
+
+4. The script will run in the background and pull updates on your schedule.
+
+### Manual updates (no auto-update setup needed)
+
+If you don't want to set up auto-updates, you can still update manually anytime:
+
+**Windows:**  
+Double-click `Run-Updater.cmd` whenever you want the latest changes.
+
+**Mac/Linux or Git Bash:**  
+```bash
+bash scripts/update-overlay.sh
+```
 
 ---
 
@@ -98,16 +172,44 @@ Open `http://<CRG-IP>:8000/custom/derby-overlay/admin/index.html`
 ## Files
 
 ```
-crg-overlay/
-├── index.html          ← Broadcast overlay (load in OBS as Browser Source)
-├── index.css           ← Custom dark styles; bar colours via CSS vars
-├── index.js            ← URL param handler + WCAG contrast utilities
+eod-custom-overlay/
+├── index.html              ← Broadcast overlay (load in OBS as Browser Source)
+├── index.css               ← Custom styles; bar colours via CSS vars
+├── index.js                ← URL param handler + contrast utilities
 ├── admin/
-│   ├── index.html      ← Admin panel (open in browser during the game)
-│   ├── index.css       ← Admin panel styles
-│   └── index.js        ← League presets + live preview CSS injection
-└── seed_game.py        ← (Dev only) push test game state via WebSocket
+│   ├── index.html          ← Admin panel (open in browser during the game)
+│   ├── index.css           ← Admin panel styles
+│   └── index.js            ← League presets + live preview
+├── preview.html            ← Preview mode (dev use)
+├── updater.config.json     ← Auto-update settings (optional)
+├── Run-Updater.cmd         ← Windows: start auto-updates (double-click)
+├── Stop-Updater.cmd        ← Windows: stop auto-updates (double-click)
+├── scripts/
+│   ├── update-overlay.sh   ← Bash: manual update
+│   └── auto-update-overlay.sh ← Bash: scheduled auto-update
+├── .git/                   ← Git repo (ignore this, CRG doesn't use it)
+├── .gitignore              ← Ignore logs and runtime files
+└── README.md               ← This file
 ```
+
+---
+
+## Will this affect my CRG installation?
+
+**No.** CRG only loads:
+- `index.html` — the broadcast overlay
+- `index.css` — the styles  
+- `index.js` — the overlay logic
+- `admin/` — the admin panel
+
+CRG completely ignores:
+- `.git/` — the Git repository folder
+- `scripts/` — the update scripts
+- `updater.config.json` — the update configuration
+- `logs/` and `runtime/` — temporary update files
+- Everything else
+
+**Result: Plug and play.** Drag the entire `eod-custom-overlay/` folder into `html/custom/`. CRG sees only the overlay. All the updater files are invisible and inert.
 
 ---
 
