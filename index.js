@@ -195,19 +195,22 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   if (existing) existing.remove();
 
   // Flash: peak frames (0%/100%) use `best` — the WCAG-checked high-contrast
-  // colour that passes 4.5:1 against barColour. Trough (50%) uses barColour
-  // itself so the text blends into the bar, producing the classic bold
-  // appear/disappear flash. WCAG AA is met on every visible frame.
+  // colour that passes 4.5:1 against barColour. Trough (50%) uses transparent
+  // so the text disappears completely, producing the classic bold
+  // appear/disappear flash. The static color rule needs !important to beat
+  // the inherited !important from .JammerBox's color declaration.
   var el = document.createElement('style');
   el.id = styleId;
   el.textContent = [
+    '[Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
+    '  color: ' + best + ' !important;',
+    '}',
     '@keyframes HasLead_T' + teamNum + ' {',
     '  0%   { color: ' + best + '; }',
-    '  50%  { color: ' + barColour + '; }',
+    '  50%  { color: transparent; }',
     '  100% { color: ' + best + '; }',
     '}',
-    '.TeamBox.InJam [Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
-    '  color: ' + best + ';',
+    '[Team="' + teamNum + '"] .JammerBox .Jamming {',
     '  animation-name: HasLead_T' + teamNum + ';',
     '}'
   ].join('\n');
