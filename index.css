@@ -89,7 +89,10 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .TeamBox .Team .DotTimeouts { width: 3%; padding-top: 2px; }
 .TeamBox .Team .Dot { width: .15em; height: .15em; margin: .05em 0 0 0; }
 .TeamBox .Team .Dot, .Dot.Current { border-radius: 100%; }
-.TeamBox .Team .Dot { background: #aaa; }
+/* Dots match the bar text colour (white on dark bars, black on light) so
+   they always pass WCAG contrast regardless of team colour. */
+.TeamBox [Team="1"] .Team .Dot { background: var(--team1-text); opacity: 0.75; }
+.TeamBox [Team="2"] .Team .Dot { background: var(--team2-text); opacity: 0.75; }
 .TeamBox .Team .Dot.OfficialReview1.Retained { margin-left: .2em; }
 .TeamBox .Team .Dot.Used { opacity: 0; }
 .TeamBox .Team .Dot.Current { opacity: 0; animation: DotActive 0.75s infinite steps(6); }
