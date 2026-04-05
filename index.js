@@ -197,25 +197,25 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   // Flash: peak frames (0%/100%) use `best` — the WCAG-checked high-contrast
   // colour that passes 4.5:1 against barColour. Trough (50%) uses transparent
   // so the text disappears completely, producing the classic bold
-  // appear/disappear flash. The static color rule needs !important to beat
-  // the inherited !important from .JammerBox's color declaration.
+  // appear/disappear flash.
   //
-  // The animation-name rule must have higher specificity than the CSS shorthand
+  // Single combined rule at specificity (0,6,0) beats the CSS shorthand
   // .TeamBox.InJam .Lead .JammerBox .Jamming { animation: HasLead ... }
-  // which is (0,5,0). We use .TeamBox.InJam [Team="N"].Lead .JammerBox .Jamming
-  // for specificity (0,6,0) so our per-team animation-name wins.
+  // at (0,5,0). The color declaration here is the static (non-animated)
+  // fallback. It must NOT use !important — CSS animations cannot override
+  // !important declarations, so !important would freeze the colour and
+  // prevent the flash. Direct color on .Jamming already beats inherited
+  // color from .JammerBox (even inherited !important is lowest priority).
   var el = document.createElement('style');
   el.id = styleId;
   el.textContent = [
-    '[Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
-    '  color: ' + best + ' !important;',
-    '}',
     '@keyframes HasLead_T' + teamNum + ' {',
     '  0%   { color: ' + best + '; }',
     '  50%  { color: transparent; }',
     '  100% { color: ' + best + '; }',
     '}',
     '.TeamBox.InJam [Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
+    '  color: ' + best + ';',
     '  animation-name: HasLead_T' + teamNum + ';',
     '}'
   ].join('\n');
