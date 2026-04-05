@@ -199,6 +199,11 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   // so the text disappears completely, producing the classic bold
   // appear/disappear flash. The static color rule needs !important to beat
   // the inherited !important from .JammerBox's color declaration.
+  //
+  // The animation-name rule must have higher specificity than the CSS shorthand
+  // .TeamBox.InJam .Lead .JammerBox .Jamming { animation: HasLead ... }
+  // which is (0,5,0). We use .TeamBox.InJam [Team="N"].Lead .JammerBox .Jamming
+  // for specificity (0,6,0) so our per-team animation-name wins.
   var el = document.createElement('style');
   el.id = styleId;
   el.textContent = [
@@ -210,7 +215,7 @@ function wcagCheckLeadFlash(teamNum, barColour) {
     '  50%  { color: transparent; }',
     '  100% { color: ' + best + '; }',
     '}',
-    '[Team="' + teamNum + '"] .JammerBox .Jamming {',
+    '.TeamBox.InJam [Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
     '  animation-name: HasLead_T' + teamNum + ';',
     '}'
   ].join('\n');
