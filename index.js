@@ -201,15 +201,13 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   var el = document.createElement('style');
   el.id = styleId;
   el.textContent = [
-    '[Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
-    '  color: ' + best + ' !important;',
-    '}',
     '@keyframes HasLead_T' + teamNum + ' {',
     '  0%   { color: ' + best + '; }',
     '  50%  { color: ' + barColour + '; }',
     '  100% { color: ' + best + '; }',
     '}',
-    '[Team="' + teamNum + '"] .JammerBox .Jamming {',
+    '.TeamBox.InJam [Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
+    '  color: ' + best + ';',
     '  animation-name: HasLead_T' + teamNum + ';',
     '}'
   ].join('\n');
