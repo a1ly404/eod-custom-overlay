@@ -72,6 +72,8 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .TeamBox [Team="1"] .Indicator { border-radius: 8px 0 0 0; background: var(--team1-bar) !important; color: var(--team1-text) !important; }
 .TeamBox [Team="2"] .Indicator { border-radius: 0 0 0 8px; background: var(--team2-bar) !important; color: var(--team2-text) !important; }
 .TeamBox.Lineups.UseLT .Indicator { display: none; }
+/* Show the indicator when a star pass is active, even in lineup/LT mode */
+.TeamBox.Lineups.UseLT .StarPass .Indicator { display: block; }
 
 /* main area – background comes from .barBackground above */
 .TeamBox .Team { width: 12em; float: left; transition: border-radius 1s; }
@@ -121,7 +123,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .TeamBox.Lineups.UseLT.InJam .Lead .JammerBox .Jamming { animation: HasLead 2s infinite steps(12); }
 @keyframes HasLead {
   0%   { color: #ffffff; }
-  50%  { color: transparent; }
+  50%  { color: rgba(255,255,255,0.25); }
   100% { color: #ffffff; }
 }
 
