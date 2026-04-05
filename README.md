@@ -204,6 +204,7 @@ eod-custom-overlay/
 
 CRG completely ignores:
 - `.git/` — the Git repository folder
+- `.docs/` — internal maintainer documentation (hidden folder)
 - `scripts/` — the update scripts
 - `updater.config.json` — the update configuration
 - `logs/` and `runtime/` — temporary update files

@@ -194,6 +194,10 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   var existing = document.getElementById(styleId);
   if (existing) existing.remove();
 
+  // Flash: peak frames (0%/100%) use `best` — the WCAG-checked high-contrast
+  // colour that passes 4.5:1 against barColour. Trough (50%) uses barColour
+  // itself so the text blends into the bar, producing the classic bold
+  // appear/disappear flash. WCAG AA is met on every visible frame.
   var el = document.createElement('style');
   el.id = styleId;
   el.textContent = [
@@ -202,7 +206,7 @@ function wcagCheckLeadFlash(teamNum, barColour) {
     '}',
     '@keyframes HasLead_T' + teamNum + ' {',
     '  0%   { color: ' + best + '; }',
-    '  50%  { color: transparent; }',
+    '  50%  { color: ' + barColour + '; }',
     '  100% { color: ' + best + '; }',
     '}',
     '[Team="' + teamNum + '"] .JammerBox .Jamming {',
