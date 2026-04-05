@@ -194,13 +194,10 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   var existing = document.getElementById(styleId);
   if (existing) existing.remove();
 
-  // Flash trough: use the bar colour itself so the text blends into the
-  // background at the dim point — this produces the classic "appear/disappear"
-  // flash while still passing WCAG at the bright frame (best vs barColour).
-  // `best` was already chosen to pass 4.5:1 against barColour, so the bright
-  // frame is always AA-compliant. The trough is intentionally invisible (same
-  // as the bar) which is what creates the flash effect — identical to the
-  // original overlay behaviour.
+  // Flash: peak frames (0%/100%) use `best` — the WCAG-checked high-contrast
+  // colour that passes 4.5:1 against barColour. Trough (50%) uses barColour
+  // itself so the text blends into the bar, producing the classic bold
+  // appear/disappear flash. WCAG AA is met on every visible frame.
   var el = document.createElement('style');
   el.id = styleId;
   el.textContent = [
