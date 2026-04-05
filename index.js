@@ -194,13 +194,13 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   var existing = document.getElementById(styleId);
   if (existing) existing.remove();
 
-  // Build a dimmed version of `best` for the flash trough.
-  // We use opacity-50 via rgba so the text dims visibly but never fully
-  // disappears into the team-bar background — fixing the WCAG contrast loss
-  // that occurred when `transparent` was used (text became invisible).
-  var rgb = hexToRgb(best);
-  var dimmed = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.25)';
-
+  // Flash trough: use the bar colour itself so the text blends into the
+  // background at the dim point — this produces the classic "appear/disappear"
+  // flash while still passing WCAG at the bright frame (best vs barColour).
+  // `best` was already chosen to pass 4.5:1 against barColour, so the bright
+  // frame is always AA-compliant. The trough is intentionally invisible (same
+  // as the bar) which is what creates the flash effect — identical to the
+  // original overlay behaviour.
   var el = document.createElement('style');
   el.id = styleId;
   el.textContent = [
@@ -209,7 +209,7 @@ function wcagCheckLeadFlash(teamNum, barColour) {
     '}',
     '@keyframes HasLead_T' + teamNum + ' {',
     '  0%   { color: ' + best + '; }',
-    '  50%  { color: ' + dimmed + '; }',
+    '  50%  { color: ' + barColour + '; }',
     '  100% { color: ' + best + '; }',
     '}',
     '[Team="' + teamNum + '"] .JammerBox .Jamming {',
