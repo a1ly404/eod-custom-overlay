@@ -124,7 +124,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .TeamBox.InJam .Lead .JammerBox .Jamming { animation: HasLead 2s infinite steps(12); }
 @keyframes HasLead {
   0%   { color: #ffffff; }
-  50%  { color: #888888; }
+  50%  { color: transparent; }
   100% { color: #ffffff; }
 }
 
