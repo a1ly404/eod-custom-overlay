@@ -121,7 +121,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 /* HasLead colour is overridden per-team by wcagCheckLeadFlash() in index.js
    based on WCAG 4.5:1 contrast against the team bar colour.
    Default fallback here is white so it shows on dark bars. */
-.TeamBox.Lineups.UseLT.InJam .Lead .JammerBox .Jamming { animation: HasLead 2s infinite steps(12); }
+.TeamBox.InJam .Lead .JammerBox .Jamming { animation: HasLead 2s infinite steps(12); }
 @keyframes HasLead {
   0%   { color: #ffffff; }
   50%  { color: #888888; }
