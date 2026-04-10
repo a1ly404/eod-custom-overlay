@@ -21,16 +21,31 @@
     var fg = params.get(fgParam);
     var bg = params.get(bgParam);
 
-    if (fg) WS.Set('ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(overlay.fg)', fg);
-    if (bg) WS.Set('ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(overlay.bg)', bg);
+    if (fg)
+      WS.Set(
+        "ScoreBoard.CurrentGame.Team(" + teamNum + ").Color(overlay.fg)",
+        fg,
+      );
+    if (bg)
+      WS.Set(
+        "ScoreBoard.CurrentGame.Team(" + teamNum + ").Color(overlay.bg)",
+        bg,
+      );
 
-    if (fg) {
+    if (fg && isValidHex(fg)) {
       // Set the full bar row background via CSS custom property (flat colour, no gradient)
-      document.documentElement.style.setProperty('--team' + teamNum + '-bar', fg);
+      document.documentElement.style.setProperty(
+        "--team" + teamNum + "-bar",
+        fg,
+      );
 
       // WCAG: pick white or black text for team name + score against the bar colour
-      var textColour = contrastRatio('#ffffff', fg) >= 4.5 ? '#ffffff' : '#000000';
-      document.documentElement.style.setProperty('--team' + teamNum + '-text', textColour);
+      var textColour =
+        contrastRatio("#ffffff", fg) >= 4.5 ? "#ffffff" : "#000000";
+      document.documentElement.style.setProperty(
+        "--team" + teamNum + "-text",
+        textColour,
+      );
 
       // WCAG: pick readable flash colour for the lead jammer star
       wcagCheckLeadFlash(teamNum, fg);
@@ -41,12 +56,19 @@
     // the team bar colour (often unreadable). We force white by default in
     // CSS (!important) and only flip to black if white fails 4.5:1 vs the bg.
     // Use URL param if present; WS.Register below will re-check on admin change.
-    var bgColour = bg || WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(overlay.bg)'] || '#000000';
-    wcagCheckRosterNumber(teamNum, bgColour);
+    var bgColour =
+      bg ||
+      WS.state[
+        "ScoreBoard.CurrentGame.Team(" + teamNum + ").Color(overlay.bg)"
+      ] ||
+      "#000000";
+    if (isValidHex(bgColour)) {
+      wcagCheckRosterNumber(teamNum, bgColour);
+    }
   }
 
-  applyTeam(1, 'home', 'homebg');
-  applyTeam(2, 'away', 'awaybg');
+  applyTeam(1, "home", "homebg");
+  applyTeam(2, "away", "awaybg");
 })();
 
 // ── Re-run WCAG checks when the admin panel changes colours via WS ────────────
@@ -55,28 +77,44 @@
 // (e.g. Hard Dark / EoD Envy / EoD Encore use bg=#b6b6b6).
 WS.Register(
   [
-    'ScoreBoard.CurrentGame.Team(1).Color(overlay.fg)',
-    'ScoreBoard.CurrentGame.Team(1).Color(overlay.bg)',
-    'ScoreBoard.CurrentGame.Team(2).Color(overlay.fg)',
-    'ScoreBoard.CurrentGame.Team(2).Color(overlay.bg)'
+    "ScoreBoard.CurrentGame.Team(1).Color(overlay.fg)",
+    "ScoreBoard.CurrentGame.Team(1).Color(overlay.bg)",
+    "ScoreBoard.CurrentGame.Team(2).Color(overlay.fg)",
+    "ScoreBoard.CurrentGame.Team(2).Color(overlay.bg)",
   ],
-  function(k) {
-    [1, 2].forEach(function(teamNum) {
-      var fg = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(overlay.fg)'];
-      var bg = WS.state['ScoreBoard.CurrentGame.Team(' + teamNum + ').Color(overlay.bg)'];
+  function (k) {
+    [1, 2].forEach(function (teamNum) {
+      var fg =
+        WS.state[
+          "ScoreBoard.CurrentGame.Team(" + teamNum + ").Color(overlay.fg)"
+        ];
+      var bg =
+        WS.state[
+          "ScoreBoard.CurrentGame.Team(" + teamNum + ").Color(overlay.bg)"
+        ];
 
-      if (fg) {
-        document.documentElement.style.setProperty('--team' + teamNum + '-bar', fg);
-        var textColour = contrastRatio('#ffffff', fg) >= 4.5 ? '#ffffff' : '#000000';
-        document.documentElement.style.setProperty('--team' + teamNum + '-text', textColour);
+      if (fg && isValidHex(fg)) {
+        document.documentElement.style.setProperty(
+          "--team" + teamNum + "-bar",
+          fg,
+        );
+        var textColour =
+          contrastRatio("#ffffff", fg) >= 4.5 ? "#ffffff" : "#000000";
+        document.documentElement.style.setProperty(
+          "--team" + teamNum + "-text",
+          textColour,
+        );
         wcagCheckLeadFlash(teamNum, fg);
       }
 
-      if (bg) {
+      if (bg && isValidHex(bg)) {
         wcagCheckRosterNumber(teamNum, bg);
       }
     });
-  }
+
+    // After both teams' colours are set, check for same-colour conflicts
+    maybeAdjustTeamConflict();
+  },
 );
 
 // ═══════════════════════════════════════════════════════════════
@@ -94,20 +132,33 @@ WS.Register(
 //   3. Black  (#000000)
 // ═══════════════════════════════════════════════════════════════
 
+// ── Hex colour validation ─────────────────────────────────────
+// Returns true only for valid 3- or 6-digit hex colour strings (with #).
+// Rejects empty strings, non-hex characters, CSS injection attempts, etc.
+function isValidHex(value) {
+  if (typeof value !== "string") return false;
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value.trim());
+}
+
 function hexToRgb(hex) {
-  var clean = hex.replace('#', '');
+  var clean = hex.replace("#", "");
   if (clean.length === 3) {
-    clean = clean.split('').map(function(c) { return c + c; }).join('');
+    clean = clean
+      .split("")
+      .map(function (c) {
+        return c + c;
+      })
+      .join("");
   }
   return {
     r: parseInt(clean.substring(0, 2), 16),
     g: parseInt(clean.substring(2, 4), 16),
-    b: parseInt(clean.substring(4, 6), 16)
+    b: parseInt(clean.substring(4, 6), 16),
   };
 }
 
 function relativeLuminance(rgb) {
-  var vals = [rgb.r, rgb.g, rgb.b].map(function(v) {
+  var vals = [rgb.r, rgb.g, rgb.b].map(function (v) {
     v = v / 255;
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
   });
@@ -118,8 +169,103 @@ function contrastRatio(hex1, hex2) {
   var l1 = relativeLuminance(hexToRgb(hex1));
   var l2 = relativeLuminance(hexToRgb(hex2));
   var lighter = Math.max(l1, l2);
-  var darker  = Math.min(l1, l2);
+  var darker = Math.min(l1, l2);
   return (lighter + 0.05) / (darker + 0.05);
+}
+
+// ── Colour manipulation ───────────────────────────────────────
+// Blend a hex colour towards white by `factor` (0 = original, 1 = pure white).
+function lightenColor(hex, factor) {
+  var rgb = hexToRgb(hex);
+  var r = Math.round(rgb.r + (255 - rgb.r) * factor);
+  var g = Math.round(rgb.g + (255 - rgb.g) * factor);
+  var b = Math.round(rgb.b + (255 - rgb.b) * factor);
+  return (
+    "#" +
+    [r, g, b]
+      .map(function (v) {
+        return v.toString(16).padStart(2, "0");
+      })
+      .join("")
+  );
+}
+
+// Blend a hex colour towards black by `factor` (0 = original, 1 = pure black).
+function darkenColor(hex, factor) {
+  var rgb = hexToRgb(hex);
+  var r = Math.round(rgb.r * (1 - factor));
+  var g = Math.round(rgb.g * (1 - factor));
+  var b = Math.round(rgb.b * (1 - factor));
+  return (
+    "#" +
+    [r, g, b]
+      .map(function (v) {
+        return v.toString(16).padStart(2, "0");
+      })
+      .join("")
+  );
+}
+
+// ── Same-colour conflict adjustment ───────────────────────────
+// When both teams share the same (or very similar) bar colour the overlay
+// becomes confusing — you can't tell which bar belongs to which team.
+// This function lightens Team 2's bar until it has at least 1.5:1 contrast
+// against Team 1, then re-derives text colour and lead-flash for T2.
+function maybeAdjustTeamConflict() {
+  var t1 = document.documentElement.style
+    .getPropertyValue("--team1-bar")
+    .trim();
+  var t2 = document.documentElement.style
+    .getPropertyValue("--team2-bar")
+    .trim();
+
+  // Skip if either is unset or still a gradient (default silver)
+  if (
+    !t1 ||
+    !t2 ||
+    t1.indexOf("gradient") !== -1 ||
+    t2.indexOf("gradient") !== -1
+  )
+    return;
+
+  var ratio = contrastRatio(t1, t2);
+  if (ratio >= 1.5) return; // Already distinguishable
+
+  // Retrieve the original T2 colour (before any previous adjustment)
+  var originalT2 =
+    WS.state["ScoreBoard.CurrentGame.Team(2).Color(overlay.fg)"] || t2;
+
+  // Try lightening T2 first (works when both teams are dark)
+  var factor = 0.2;
+  var adjusted = originalT2;
+  var foundByLightening = false;
+  while (factor <= 0.9) {
+    adjusted = lightenColor(originalT2, factor);
+    if (contrastRatio(t1, adjusted) >= 1.5) {
+      foundByLightening = true;
+      break;
+    }
+    factor += 0.1;
+  }
+
+  // If lightening didn't help (e.g. both teams are white/light), darken instead
+  if (!foundByLightening) {
+    factor = 0.2;
+    while (factor <= 0.9) {
+      adjusted = darkenColor(originalT2, factor);
+      if (contrastRatio(t1, adjusted) >= 1.5) break;
+      factor += 0.1;
+    }
+  }
+
+  // Apply the adjusted T2 bar
+  document.documentElement.style.setProperty("--team2-bar", adjusted);
+  var textColour =
+    contrastRatio("#ffffff", adjusted) >= 4.5 ? "#ffffff" : "#000000";
+  document.documentElement.style.setProperty("--team2-text", textColour);
+
+  // Re-derive lead flash for T2 against its new bar colour
+  wcagCheckLeadFlash(2, adjusted);
 }
 
 // ── Roster number text contrast ───────────────────────────────
@@ -127,47 +273,56 @@ function contrastRatio(hex1, hex2) {
 // cell in the roster panel. We override this with CSS !important
 // (always white) and only inject a !important black override if
 // white fails WCAG 4.5:1 contrast against the swatch background.
-var ROSTER_NUM_STYLE_ID = 'derby-roster-num-style';
+var ROSTER_NUM_STYLE_ID = "derby-roster-num-style";
 
 function wcagCheckRosterNumber(teamNum, bgColour) {
-  var textColour = contrastRatio('#ffffff', bgColour) >= 4.5 ? '#ffffff' : '#000000';
+  var textColour =
+    contrastRatio("#ffffff", bgColour) >= 4.5 ? "#ffffff" : "#000000";
 
   if (contrastRatio(textColour, bgColour) < 4.5) {
     console.warn(
-      'Derby overlay: Team ' + teamNum + ' roster number contrast is ' +
-      contrastRatio(textColour, bgColour).toFixed(2) + ':1 against ' + bgColour +
-      '. Neither white nor black passes WCAG AA.'
+      "Derby overlay: Team " +
+        teamNum +
+        " roster number contrast is " +
+        contrastRatio(textColour, bgColour).toFixed(2) +
+        ":1 against " +
+        bgColour +
+        ". Neither white nor black passes WCAG AA.",
     );
   }
 
-  var styleId = ROSTER_NUM_STYLE_ID + '-t' + teamNum;
+  var styleId = ROSTER_NUM_STYLE_ID + "-t" + teamNum;
   var existing = document.getElementById(styleId);
   if (existing) existing.remove();
 
   // Only inject if we need black — white is already the default via CSS
-  if (textColour !== '#ffffff') {
-    var el = document.createElement('style');
+  if (textColour !== "#ffffff") {
+    var el = document.createElement("style");
     el.id = styleId;
     el.textContent =
-      '.RosterTeam [Team="' + teamNum + '"] .Number { color: #000000 !important; }';
+      '.RosterTeam [Team="' +
+      teamNum +
+      '"] .Number { color: #000000 !important; }';
     document.head.appendChild(el);
   }
 }
 
 // ── Lead flash contrast ─────────────────────────────────────────
 // Default lead flash colour used in the HasLead CSS animation
-var LEAD_FLASH_DEFAULT = '#ff0000';
+var LEAD_FLASH_DEFAULT = "#ff0000";
 // CSS variable name we inject per-team to override the animation colour
-var LEAD_FLASH_STYLE_ID = 'derby-lead-flash-style';
+var LEAD_FLASH_STYLE_ID = "derby-lead-flash-style";
 
 function wcagCheckLeadFlash(teamNum, barColour) {
-  var candidates = ['#ff0000', '#ffffff', '#ffff00', '#000000'];
-  var best = '#ffffff';
+  // Candidate flash colours tried in order until one passes WCAG AA 4.5:1.
+  // Prefer red (classic derby lead indicator), then high-visibility alternatives.
+  var candidates = ["#ff0000", "#ffffff", "#ffff00", "#000000"];
+  var best = "#ffffff";
   var bestRatio = 0;
 
   for (var i = 0; i < candidates.length; i++) {
     var ratio = contrastRatio(candidates[i], barColour);
-    // WCAG AA large text = 3:1, AA normal = 4.5:1 — we target 4.5
+    // WCAG AA normal text = 4.5:1
     if (ratio >= 4.5) {
       best = candidates[i];
       break;
@@ -182,15 +337,33 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   var finalRatio = contrastRatio(best, barColour);
   if (finalRatio < 4.5) {
     console.warn(
-      'Derby overlay: Team ' + teamNum + ' lead flash contrast is ' +
-      finalRatio.toFixed(2) + ':1 (WCAG AA requires 4.5:1). ' +
-      'Bar colour: ' + barColour + ', Flash colour: ' + best
+      "Derby overlay: Team " +
+        teamNum +
+        " lead flash contrast is " +
+        finalRatio.toFixed(2) +
+        ":1 (WCAG AA requires 4.5:1). " +
+        "Bar colour: " +
+        barColour +
+        ", Flash colour: " +
+        best,
     );
   }
 
+  // ── Expose CSS custom properties for test verification & external tooling ──
+  // Tests (league-presets.spec.ts, lineup-flash.spec.ts) read these to assert
+  // WCAG compliance without parsing injected <style> blocks.
+  document.documentElement.style.setProperty(
+    "--team" + teamNum + "-flash-peak",
+    best,
+  );
+  document.documentElement.style.setProperty(
+    "--team" + teamNum + "-flash-trough",
+    barColour,
+  );
+
   // Inject a <style> block that overrides the HasLead animation colour
   // for the specific team. Uses a CSS attribute selector on [Team="N"].
-  var styleId = LEAD_FLASH_STYLE_ID + '-t' + teamNum;
+  var styleId = LEAD_FLASH_STYLE_ID + "-t" + teamNum;
   var existing = document.getElementById(styleId);
   if (existing) existing.remove();
 
@@ -198,106 +371,121 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   // colour that passes 4.5:1 against barColour. Trough (50%) uses barColour
   // itself so the text blends into the bar, producing the classic bold
   // appear/disappear flash. WCAG AA is met on every visible frame.
-  var el = document.createElement('style');
+  var el = document.createElement("style");
   el.id = styleId;
   el.textContent = [
-    '@keyframes HasLead_T' + teamNum + ' {',
-    '  0%   { color: ' + best + '; }',
-    '  50%  { color: ' + barColour + '; }',
-    '  100% { color: ' + best + '; }',
-    '}',
+    "@keyframes HasLead_T" + teamNum + " {",
+    "  0%   { color: " + best + "; }",
+    "  50%  { color: " + barColour + "; }",
+    "  100% { color: " + best + "; }",
+    "}",
     '.TeamBox.InJam [Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
-    '  color: ' + best + ';',
-    '  animation-name: HasLead_T' + teamNum + ';',
-    '}'
-  ].join('\n');
+    "  color: " + best + ";",
+    "  animation-name: HasLead_T" + teamNum + ";",
+    "}",
+  ].join("\n");
   document.head.appendChild(el);
 }
 
 WS.Register(
   [
-    'ScoreBoard.CurrentGame.Clock(Timeout).Running',
-    'ScoreBoard.CurrentGame.Clock(*).Name',
-    'ScoreBoard.CurrentGame.TimeoutOwner',
-    'ScoreBoard.CurrentGame.OfficialReview',
-    'ScoreBoard.CurrentGame.Team(*).Timeouts',
-    'ScoreBoard.CurrentGame.ClockDuringFinalScore'
+    "ScoreBoard.CurrentGame.Clock(Timeout).Running",
+    "ScoreBoard.CurrentGame.Clock(*).Name",
+    "ScoreBoard.CurrentGame.TimeoutOwner",
+    "ScoreBoard.CurrentGame.OfficialReview",
+    "ScoreBoard.CurrentGame.Team(*).Timeouts",
+    "ScoreBoard.CurrentGame.ClockDuringFinalScore",
   ],
-  sbSetActiveTimeout
+  sbSetActiveTimeout,
 );
 
-WS.Register(['ScoreBoard.Settings.Setting(Overlay.Interactive.ClockAfterTimeout)', 'ScoreBoard.CurrentGame.Clock(*).Running', 'ScoreBoard.CurrentGame.InJam'],
-  function (k) { _sbClockSelect('ScoreBoard.CurrentGame', 'Overlay.Interactive.ClockAfterTimeout') });
+WS.Register(
+  [
+    "ScoreBoard.Settings.Setting(Overlay.Interactive.ClockAfterTimeout)",
+    "ScoreBoard.CurrentGame.Clock(*).Running",
+    "ScoreBoard.CurrentGame.InJam",
+  ],
+  function (k) {
+    _sbClockSelect(
+      "ScoreBoard.CurrentGame",
+      "Overlay.Interactive.ClockAfterTimeout",
+    );
+  },
+);
 
-WS.Register('ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)');
+WS.Register("ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)");
 
 WS.AfterLoad(function () {
-  $('body').removeClass('preload');
+  $("body").removeClass("preload");
 });
 
 function _ovlToggleSetting(s) {
   WS.Set(
-    'ScoreBoard.Settings.Setting(Overlay.Interactive.' + s + ')',
-    !isTrue(WS.state['ScoreBoard.Settings.Setting(Overlay.Interactive.' + s + ')'])
+    "ScoreBoard.Settings.Setting(Overlay.Interactive." + s + ")",
+    !isTrue(
+      WS.state["ScoreBoard.Settings.Setting(Overlay.Interactive." + s + ")"],
+    ),
   );
 }
 
 function _ovlTogglePanel(p) {
   WS.Set(
-    'ScoreBoard.Settings.Setting(Overlay.Interactive.Panel)',
-    WS.state['ScoreBoard.Settings.Setting(Overlay.Interactive.Panel)'] === p ? '' : p
+    "ScoreBoard.Settings.Setting(Overlay.Interactive.Panel)",
+    WS.state["ScoreBoard.Settings.Setting(Overlay.Interactive.Panel)"] === p
+      ? ""
+      : p,
   );
 }
 
 function ovlHandleKey(k, v, elem, e) {
   switch (e.which) {
     case 74: // j
-      _ovlToggleSetting('ShowJammers');
+      _ovlToggleSetting("ShowJammers");
       break;
     case 76: // l
-      _ovlToggleSetting('ShowLineups');
+      _ovlToggleSetting("ShowLineups");
       break;
     case 78: // n
-      _ovlToggleSetting('ShowAllNames');
+      _ovlToggleSetting("ShowAllNames");
       break;
     case 80: // p
-      _ovlToggleSetting('ShowPenaltyClocks');
+      _ovlToggleSetting("ShowPenaltyClocks");
       break;
     case 67: // c
-      _ovlToggleSetting('Clock');
+      _ovlToggleSetting("Clock");
       break;
     case 83: // s
-      _ovlToggleSetting('Score');
+      _ovlToggleSetting("Score");
       break;
     case 48: // 0
-      _ovlTogglePanel('PPJBox');
+      _ovlTogglePanel("PPJBox");
       break;
     case 49: // 1
-      _ovlTogglePanel('RosterTeam1');
+      _ovlTogglePanel("RosterTeam1");
       break;
     case 50: // 2
-      _ovlTogglePanel('RosterTeam2');
+      _ovlTogglePanel("RosterTeam2");
       break;
     case 51: // 3
-      _ovlTogglePanel('PenaltyTeam1');
+      _ovlTogglePanel("PenaltyTeam1");
       break;
     case 52: // 4
-      _ovlTogglePanel('PenaltyTeam2');
+      _ovlTogglePanel("PenaltyTeam2");
       break;
     case 57: // 9
-      _ovlTogglePanel('LowerThird');
+      _ovlTogglePanel("LowerThird");
       break;
     case 85: // u
-      _ovlTogglePanel('Upcoming');
+      _ovlTogglePanel("Upcoming");
       break;
     case 32: // space
-      WS.Set('ScoreBoard.Settings.Setting(Overlay.Interactive.Panel)', '');
+      WS.Set("ScoreBoard.Settings.Setting(Overlay.Interactive.Panel)", "");
       break;
   }
 }
 
 function ovlToBackground(k, v) {
-  return v || 'transparent';
+  return v || "transparent";
 }
 
 // ── Team name truncation ──────────────────────────────────────────────────────
@@ -305,26 +493,29 @@ function ovlToBackground(k, v) {
 // (roughly where names start overflowing the 67%-wide Name box at this font size).
 // Short and medium names (e.g. "EoD Envy", "West Sound", "Saskatoon") are
 // shown in full. Very long names (e.g. "Denver Roller Derby") → "Denver".
-var TEAM_NAME_MAX = 14;
+var TEAM_NAME_MAX = 28;
 function ovlToFirstWord(k, v) {
   if (!v || v.length <= TEAM_NAME_MAX) return v;
-  var firstSpace = v.indexOf(' ');
+  var firstSpace = v.indexOf(" ");
   return firstSpace === -1 ? v : v.substring(0, firstSpace);
 }
 
 function ovlToIndicator(k, v) {
-  var prefix = k.substring(0, k.lastIndexOf('.'));
-  return isTrue(WS.state[prefix + '.StarPass'])
-    ? 'SP'
-    : isTrue(WS.state[prefix + '.Lost'])
-      ? ''
-      : isTrue(WS.state[prefix + '.Lead'])
-        ? '★'
-        : '';
+  var prefix = k.substring(0, k.lastIndexOf("."));
+  return isTrue(WS.state[prefix + ".StarPass"])
+    ? "SP"
+    : isTrue(WS.state[prefix + ".Lost"])
+      ? ""
+      : isTrue(WS.state[prefix + ".Lead"])
+        ? "★"
+        : "";
 }
 
 function ovlIsJamming(k, v, elem) {
-  return (isTrue(v) && elem.attr('Position') === 'Pivot') || (!isTrue(v) && elem.attr('Position') === 'Jammer');
+  return (
+    (isTrue(v) && elem.attr("Position") === "Pivot") ||
+    (!isTrue(v) && elem.attr("Position") === "Jammer")
+  );
 }
 
 function ovlToPpjColumnWidth(k, v, elem) {
@@ -335,87 +526,107 @@ function ovlToPpjColumnWidth(k, v, elem) {
   }
   const wid = parseInt(elem.parent().parent().innerWidth());
   const newWidth = parseInt(wid / ne1) - 4;
-  $('.ColumnWidth').css('width', newWidth);
+  $(".ColumnWidth").css("width", newWidth);
 
   return newWidth;
 }
 
 function ovlToPpjMargin(k, v, elem) {
-  if (k.TeamJam === '2') {
+  if (k.TeamJam === "2") {
     return 0;
   }
   return parseInt(elem.parent().innerHeight()) - v * 4;
 }
 
 function ovlToLowerThirdColorFg() {
-  return _ovlToLowerThirdColor('overlay.fg');
+  return _ovlToLowerThirdColor("overlay.fg");
 }
 
 function ovlToLowerThirdColorBg() {
-  return _ovlToLowerThirdColor('overlay.bg');
+  return _ovlToLowerThirdColor("overlay.bg");
 }
 
 function _ovlToLowerThirdColor(type) {
-  switch (WS.state['ScoreBoard.Settings.Setting(Overlay.Interactive.LowerThird.Style)']) {
-    case 'ColourTeam1':
-      return WS.state['ScoreBoard.CurrentGame.Team(1).Color(' + type + ')'];
-    case 'ColourTeam2':
-      return WS.state['ScoreBoard.CurrentGame.Team(2).Color(' + type + ')'];
+  switch (
+    WS.state[
+      "ScoreBoard.Settings.Setting(Overlay.Interactive.LowerThird.Style)"
+    ]
+  ) {
+    case "ColourTeam1":
+      return WS.state["ScoreBoard.CurrentGame.Team(1).Color(" + type + ")"];
+    case "ColourTeam2":
+      return WS.state["ScoreBoard.CurrentGame.Team(2).Color(" + type + ")"];
     default:
-      return '';
+      return "";
   }
 }
 
 function ovlToClockType() {
   var ret;
-  const to = WS.state['ScoreBoard.CurrentGame.TimeoutOwner'];
-  const or = WS.state['ScoreBoard.CurrentGame.OfficialReview'];
-  const tc = WS.state['ScoreBoard.CurrentGame.Clock(Timeout).Running'];
-  const lc = WS.state['ScoreBoard.CurrentGame.Clock(Lineup).Running'];
-  const ic = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Running'];
-  const jc = WS.state['ScoreBoard.CurrentGame.InJam'];
+  const to = WS.state["ScoreBoard.CurrentGame.TimeoutOwner"];
+  const or = WS.state["ScoreBoard.CurrentGame.OfficialReview"];
+  const tc = WS.state["ScoreBoard.CurrentGame.Clock(Timeout).Running"];
+  const lc = WS.state["ScoreBoard.CurrentGame.Clock(Lineup).Running"];
+  const ic = WS.state["ScoreBoard.CurrentGame.Clock(Intermission).Running"];
+  const jc = WS.state["ScoreBoard.CurrentGame.InJam"];
 
   if (jc) {
-    ret = 'Jam';
-    $('.ClockDescription').css('backgroundColor', '#444');
+    ret = "Jam";
+    $(".ClockDescription").css("backgroundColor", "#444");
   } else if (lc) {
-    ret = WS.state['ScoreBoard.CurrentGame.Clock(Lineup).Name'];
-    $('.ClockDescription').css('backgroundColor', '#444');
+    ret = WS.state["ScoreBoard.CurrentGame.Clock(Lineup).Name"];
+    $(".ClockDescription").css("backgroundColor", "#444");
   } else if (tc) {
-    ret = WS.state['ScoreBoard.CurrentGame.Clock(Timeout).Name'];
-    if (to !== '' && to !== 'O' && or) {
-      ret = 'Official Review';
+    ret = WS.state["ScoreBoard.CurrentGame.Clock(Timeout).Name"];
+    if (to !== "" && to !== "O" && or) {
+      ret = "Official Review";
     }
-    if (to !== '' && to !== 'O' && !or) {
-      ret = 'Team Timeout';
+    if (to !== "" && to !== "O" && !or) {
+      ret = "Team Timeout";
     }
-    if (to === 'O') {
-      ret = 'Official Timeout';
+    if (to === "O") {
+      ret = "Official Timeout";
     }
-    $('.ClockDescription').css('backgroundColor', '#c0392b');
+    $(".ClockDescription").css("backgroundColor", "#c0392b");
   } else if (ic) {
-    const num = WS.state['ScoreBoard.CurrentGame.Clock(Intermission).Number'];
-    const max = WS.state['ScoreBoard.CurrentGame.Rule(Period.Number)'];
-    const isOfficial = WS.state['ScoreBoard.CurrentGame.OfficialScore'];
-    const showDuringOfficial = WS.state['ScoreBoard.CurrentGame.ClockDuringFinalScore'];
+    const num = WS.state["ScoreBoard.CurrentGame.Clock(Intermission).Number"];
+    const max = WS.state["ScoreBoard.CurrentGame.Rule(Period.Number)"];
+    const isOfficial = WS.state["ScoreBoard.CurrentGame.OfficialScore"];
+    const showDuringOfficial =
+      WS.state["ScoreBoard.CurrentGame.ClockDuringFinalScore"];
     if (isOfficial) {
       if (showDuringOfficial) {
-        ret = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.OfficialWithClock)'];
+        ret =
+          WS.state[
+            "ScoreBoard.Settings.Setting(ScoreBoard.Intermission.OfficialWithClock)"
+          ];
       } else {
-        ret = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)'];
+        ret =
+          WS.state[
+            "ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Official)"
+          ];
       }
     } else if (num === 0) {
-      ret = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)'];
+      ret =
+        WS.state[
+          "ScoreBoard.Settings.Setting(ScoreBoard.Intermission.PreGame)"
+        ];
     } else if (num != max) {
-      ret = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)'];
+      ret =
+        WS.state[
+          "ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Intermission)"
+        ];
     } else if (!isOfficial) {
-      ret = WS.state['ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)'];
+      ret =
+        WS.state[
+          "ScoreBoard.Settings.Setting(ScoreBoard.Intermission.Unofficial)"
+        ];
     }
 
-    $('.ClockDescription').css('backgroundColor', '#1a4a8a');
+    $(".ClockDescription").css("backgroundColor", "#1a4a8a");
   } else {
-    ret = 'Coming Up';
-    $('.ClockDescription').css('backgroundColor', '#1a4a8a');
+    ret = "Coming Up";
+    $(".ClockDescription").css("backgroundColor", "#1a4a8a");
   }
 
   return ret;
