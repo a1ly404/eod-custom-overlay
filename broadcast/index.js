@@ -235,6 +235,17 @@ function maybeAdjustTeamConflict() {
   var originalT2 =
     WS.state["ScoreBoard.CurrentGame.Team(2).Color(overlay.fg)"] || t2;
 
+  // If WS.state contains an invalid value, fall back to the computed CSS var.
+  // This prevents accidental overwrite/propagation of invalid values (security tests)
+  // and avoids passing non-hex values into colour math routines below.
+  if (!isValidHex(originalT2)) {
+    originalT2 = t2;
+  }
+  if (!isValidHex(originalT2)) {
+    // Nothing valid to adjust — bail out.
+    return;
+  }
+
   // Try lightening T2 first (works when both teams are dark)
   var factor = 0.2;
   var adjusted = originalT2;
@@ -314,6 +325,26 @@ var LEAD_FLASH_DEFAULT = "#ff0000";
 var LEAD_FLASH_STYLE_ID = "derby-lead-flash-style";
 
 function wcagCheckLeadFlash(teamNum, barColour) {
+  // Defensive validation: ensure the supplied barColour is a valid hex string.
+  // If the caller passed an invalid value (e.g. via admin preview or malformed WS
+  // state), try to fall back to the CSS-var that may already be set. If nothing
+  // valid exists, fall back to a safe default to avoid leaving CSS vars empty.
+  if (!isValidHex(barColour)) {
+    var existingBar = getComputedStyle(document.documentElement)
+      .getPropertyValue("--team" + teamNum + "-bar")
+      .trim();
+    if (isValidHex(existingBar)) {
+      barColour = existingBar;
+    } else {
+      console.warn(
+        "Derby overlay: wcagCheckLeadFlash called with invalid barColour for team " +
+          teamNum +
+          " — falling back to #000000",
+      );
+      barColour = "#000000";
+    }
+  }
+
   // Candidate flash colours tried in order until one passes WCAG AA 4.5:1.
   // Prefer red (classic derby lead indicator), then high-visibility alternatives.
   var candidates = ["#ff0000", "#ffffff", "#ffff00", "#000000"];
@@ -417,6 +448,49 @@ WS.Register("ScoreBoard.CurrentGame.Rule(Penalties.NumberToFoulout)");
 
 WS.AfterLoad(function () {
   $("body").removeClass("preload");
+
+  // Safety: ensure WCAG-derived CSS variables are applied on initial load.
+  // In some environments WS.Register callbacks can be processed after
+  // WS.AfterLoad; these tests rely on derived CSS custom properties
+  // (--teamN-flash-peak / --teamN-flash-trough) being available immediately.
+  (function applyInitialCssVars() {
+    [1, 2].forEach(function (teamNum) {
+      var fgKey =
+        "ScoreBoard.CurrentGame.Team(" + teamNum + ").Color(overlay.fg)";
+      var fg = WS.state[fgKey];
+
+      if (fg && isValidHex(fg)) {
+        // Apply the same logic as WS.Register to ensure the overlay is in a
+        // consistent state even if the register event runs later.
+        document.documentElement.style.setProperty(
+          "--team" + teamNum + "-bar",
+          fg,
+        );
+        var textColour =
+          contrastRatio("#ffffff", fg) >= 4.5 ? "#ffffff" : "#000000";
+        document.documentElement.style.setProperty(
+          "--team" + teamNum + "-text",
+          textColour,
+        );
+
+        // Re-run WCAG check for the lead flash for this team.
+        // wcagCheckLeadFlash itself guards against invalid input.
+        wcagCheckLeadFlash(teamNum, fg);
+      } else {
+        // If WS.state didn't provide a valid colour, try the existing CSS var
+        // (for example when the admin preview set it already).
+        var existingBar = getComputedStyle(document.documentElement)
+          .getPropertyValue("--team" + teamNum + "-bar")
+          .trim();
+        if (existingBar && isValidHex(existingBar)) {
+          wcagCheckLeadFlash(teamNum, existingBar);
+        }
+      }
+    });
+
+    // After establishing initial colours, ensure same-colour adjustments run.
+    maybeAdjustTeamConflict();
+  })();
 });
 
 function _ovlToggleSetting(s) {
