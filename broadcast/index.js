@@ -563,15 +563,18 @@ function ovlToBackground(k, v) {
 }
 
 // ── Team name truncation ──────────────────────────────────────────────────────
-// Only truncates to the first word when the name is longer than 14 characters
-// (roughly where names start overflowing the 67%-wide Name box at this font size).
-// Short and medium names (e.g. "EoD Envy", "West Sound", "Saskatoon") are
-// shown in full. Very long names (e.g. "Denver Roller Derby") → "Denver".
-var TEAM_NAME_MAX = 28;
+// Keep names intact for longer than before, then truncate predictably with
+// ellipsis for extreme lengths so the score bar never visually breaks.
+var TEAM_NAME_MAX = 36;
 function ovlToFirstWord(k, v) {
-  if (!v || v.length <= TEAM_NAME_MAX) return v;
-  var firstSpace = v.indexOf(" ");
-  return firstSpace === -1 ? v : v.substring(0, firstSpace);
+  if (!v) return v;
+  var name = v.trim().replace(/\s+/g, " ");
+  if (name.length <= TEAM_NAME_MAX) return name;
+  var lastSpace = name.lastIndexOf(" ", TEAM_NAME_MAX - 1);
+  if (lastSpace >= Math.floor(TEAM_NAME_MAX * 0.6)) {
+    return name.substring(0, lastSpace) + "…";
+  }
+  return name.substring(0, TEAM_NAME_MAX - 1) + "…";
 }
 
 function ovlToIndicator(k, v) {
