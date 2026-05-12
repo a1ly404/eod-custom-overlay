@@ -74,8 +74,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 /* Indicator is always visible — UseLT / lineup mode does not hide it */
 
 /* main area – background comes from .barBackground above */
-.TeamBox .Team { width: 12.5em; float: left; transition: border-radius 1s; display: flex; }
-.TeamBox .Team > .Box { float: none; }
+.TeamBox .Team { width: 12.5em; transition: border-radius 1s; display: flex; }
 .TeamBox .Team { border-right: 2px solid rgba(128,128,128,0.4); }
 .TeamBox [Team="1"] .Team { border-radius: 0 8px 0 0; }
 .TeamBox [Team="2"] .Team { border-radius: 0 0 8px 0; }
