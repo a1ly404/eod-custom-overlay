@@ -567,12 +567,15 @@ function ovlToBackground(k, v) {
 // ellipsis for extreme lengths so the score bar never visually breaks.
 var TEAM_NAME_MAX = 36;
 var TEAM_NAME_WORD_BOUNDARY_MIN_RATIO = 0.6;
+var TEAM_NAME_MIN_WORD_BOUNDARY = Math.floor(
+  TEAM_NAME_MAX * TEAM_NAME_WORD_BOUNDARY_MIN_RATIO,
+);
 function ovlToFirstWord(k, v) {
   if (!v) return v;
   var name = v.trim().replace(/\s+/g, " ");
   if (name.length <= TEAM_NAME_MAX) return name;
   var lastSpace = name.lastIndexOf(" ", TEAM_NAME_MAX - 1);
-  if (lastSpace >= Math.floor(TEAM_NAME_MAX * TEAM_NAME_WORD_BOUNDARY_MIN_RATIO)) {
+  if (lastSpace >= TEAM_NAME_MIN_WORD_BOUNDARY) {
     return name.substring(0, lastSpace) + "…";
   }
   return name.substring(0, TEAM_NAME_MAX - 1) + "…";
