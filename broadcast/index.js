@@ -571,7 +571,7 @@ function ovlToFirstWord(k, v) {
   if (!v) return v;
   var name = v.trim().replace(/\s+/g, " ");
   if (name.length <= TEAM_NAME_MAX) return name;
-  var lastSpace = name.lastIndexOf(" ", TEAM_NAME_MAX - 1);
+  var lastSpace = name.lastIndexOf(" ", TEAM_NAME_MAX - 2);
   if (lastSpace >= Math.floor(TEAM_NAME_MAX * TEAM_NAME_WORD_BOUNDARY_MIN_RATIO)) {
     return name.substring(0, lastSpace) + "…";
   }
