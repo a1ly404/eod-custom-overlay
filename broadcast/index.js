@@ -564,7 +564,7 @@ function ovlToBackground(k, v) {
 
 // ── Team name truncation ──────────────────────────────────────────────────────
 // Keep names intact for longer than before, then truncate predictably with
-// ellipsis for extreme lengths so the score bar never visually breaks.
+// hard cutoff so the score bar never visually breaks.
 var TEAM_NAME_MAX = 36;
 var TEAM_NAME_WORD_BOUNDARY_MIN_RATIO = 0.6;
 var TEAM_NAME_MIN_WORD_BOUNDARY = Math.floor(
@@ -576,9 +576,9 @@ function ovlToFirstWord(k, v) {
   if (name.length <= TEAM_NAME_MAX) return name;
   var lastSpace = name.lastIndexOf(" ", TEAM_NAME_MAX - 1);
   if (lastSpace >= TEAM_NAME_MIN_WORD_BOUNDARY) {
-    return name.substring(0, lastSpace) + "…";
+    return name.substring(0, lastSpace);
   }
-  return name.substring(0, TEAM_NAME_MAX - 1) + "…";
+  return name.substring(0, TEAM_NAME_MAX);
 }
 
 function ovlToIndicator(k, v) {

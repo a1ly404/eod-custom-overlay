@@ -54,7 +54,7 @@ http://<CRG-IP>:8000/custom/view/broadcast/index.html?home=%23HEX&away=%23HEX
 
 Replace `HEX` with the team's brand colour (e.g. `%231f3264` for `#1f3264`). `#` must be URL-encoded as `%23`.
 
-Team names in the top score bar now keep more of the full name before fallback truncation, and overflow uses ellipsis to avoid visual clipping.
+Team names in the top score bar now keep more of the full name before fallback truncation, and overflow is clipped cleanly without ellipsis.
 
 | Parameter | What it sets | Example |
 |-----------|-------------|---------|

@@ -85,7 +85,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .TeamBox .Team .Name  {
   text-align: left;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   white-space: nowrap;
   font-size: 80%;
   flex: 1 1 auto;
@@ -94,6 +94,13 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
   padding-left: 2%;
   border-left: 2px solid rgba(128,128,128,0.4);
   color: inherit;
+}
+
+.TeamBox .JammerBox .Name {
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  min-width: 0;
 }
 /* Keep fixed utility sections readable while allowing name field to take remaining width. */
 .TeamBox .Team .Score {
