@@ -74,7 +74,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 /* Indicator is always visible — UseLT / lineup mode does not hide it */
 
 /* main area – background comes from .barBackground above */
-.TeamBox .Team { width: 12em; float: left; transition: border-radius 1s; }
+.TeamBox .Team { width: 12.5em; transition: border-radius 1s; display: flex; }
 .TeamBox .Team { border-right: 2px solid rgba(128,128,128,0.4); }
 .TeamBox [Team="1"] .Team { border-radius: 0 8px 0 0; }
 .TeamBox [Team="2"] .Team { border-radius: 0 0 8px 0; }
@@ -82,11 +82,51 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .TeamBox.Lineups.UseLT [Team="2"] .Team { border-radius: 0 0 0 8px; }
 .TeamBox:not(.Lineups.UseLT).ShowJammers.InJam .Team { border-radius: 0; }
 
-.TeamBox .Team .Name  { text-align: left; overflow: hidden; font-size: 80%; width: 67%; padding-left: 2%; border-left: 2px solid rgba(128,128,128,0.4); color: inherit; }
-.TeamBox .Team .Score { width: 18%; text-align: right; padding-right: .1em; font-size: 90%; color: inherit; }
-.TeamBox .Team .Mini  { width: 8%; font-size: 45%; line-height: 99%; padding-top: 12px; }
+.TeamBox .Team .Name  {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  font-size: 80%;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  padding-left: 2%;
+  border-left: 2px solid rgba(128,128,128,0.4);
+  color: inherit;
+}
+
+.TeamBox .JammerBox .Name {
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  min-width: 0;
+}
+/* Keep fixed utility sections readable while allowing name field to take remaining width. */
+.TeamBox .Team .Score {
+  width: auto;
+  min-width: 2.1em; /* keeps 3+ digit scores readable */
+  text-align: right;
+  padding-right: .1em;
+  font-size: 90%;
+  color: inherit;
+  flex: 0 0 auto;
+}
+.TeamBox .Team .Mini  {
+  width: auto;
+  min-width: .95em; /* keeps jam mini-score from collapsing */
+  font-size: 45%;
+  line-height: 99%;
+  padding-top: 12px;
+  flex: 0 0 auto;
+}
 .TeamBox .Team .Mini .JamScore { width: 100%; text-align: center; color: inherit; }
-.TeamBox .Team .DotTimeouts { width: 3%; padding-top: 2px; }
+.TeamBox .Team .DotTimeouts {
+  width: auto;
+  min-width: .45em; /* preserves timeout dots as visible column */
+  padding-top: 2px;
+  flex: 0 0 auto;
+}
 .TeamBox .Team .Dot { width: .15em; height: .15em; margin: .05em 0 0 0; }
 .TeamBox .Team .Dot, .Dot.Current { border-radius: 100%; }
 /* Dots use the same fully opaque foreground colour as the team bar text
