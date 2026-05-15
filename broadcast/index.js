@@ -380,6 +380,26 @@ function wcagCheckLeadFlash(teamNum, barColour) {
     );
   }
 
+  // Pick a trough colour — the second colour in the two-colour pulse.
+  // Must NOT be barColour (that was the old bug: text invisible at 50%) and
+  // must NOT equal the peak, so the pulse has two visible, distinct colours.
+  // Try candidates in order; first with ≥ 3.0:1 contrast against bar wins.
+  var trough = null;
+  var bestTroughRatio = 0;
+  for (var j = 0; j < candidates.length; j++) {
+    if (candidates[j] === best) continue;
+    var tr = contrastRatio(candidates[j], barColour);
+    if (tr >= 3.0) {
+      trough = candidates[j];
+      break;
+    }
+    if (tr > bestTroughRatio) {
+      bestTroughRatio = tr;
+      trough = candidates[j];
+    }
+  }
+  if (!trough) trough = best;
+
   // ── Expose CSS custom properties for test verification & external tooling ──
   // Tests (league-presets.spec.ts, lineup-flash.spec.ts) read these to assert
   // WCAG compliance without parsing injected <style> blocks.
@@ -389,7 +409,7 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   );
   document.documentElement.style.setProperty(
     "--team" + teamNum + "-flash-trough",
-    barColour,
+    trough,
   );
 
   // Inject a <style> block that overrides the HasLead animation colour
@@ -398,16 +418,16 @@ function wcagCheckLeadFlash(teamNum, barColour) {
   var existing = document.getElementById(styleId);
   if (existing) existing.remove();
 
-  // Flash: peak frames (0%/100%) use `best` — the WCAG-checked high-contrast
-  // colour that passes 4.5:1 against barColour. Trough (50%) uses barColour
-  // itself so the text blends into the bar, producing the classic bold
-  // appear/disappear flash. WCAG AA is met on every visible frame.
+  // Flash: peak frames (0%/100%) use `best` and trough (50%) uses a second
+  // visible colour — both contrast against barColour so text is readable
+  // throughout the entire flash cycle. The two-colour pulse is more lively
+  // than the old appear/disappear effect and never hides the jammer name.
   var el = document.createElement("style");
   el.id = styleId;
   el.textContent = [
     "@keyframes HasLead_T" + teamNum + " {",
     "  0%   { color: " + best + "; }",
-    "  50%  { color: " + barColour + "; }",
+    "  50%  { color: " + trough + "; }",
     "  100% { color: " + best + "; }",
     "}",
     '.TeamBox.InJam [Team="' + teamNum + '"].Lead .JammerBox .Jamming {',
