@@ -74,7 +74,9 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 /* Indicator is always visible — UseLT / lineup mode does not hide it */
 
 /* main area – background comes from .barBackground above */
-.TeamBox .Team { width: 12.5em; transition: border-radius 1s; display: flex; }
+/* Each [Team] row is a horizontal flex strip: [Indicator] [Score bar] [Jammer panel] */
+.TeamBox [Team] { display: flex; align-items: stretch; }
+.TeamBox .Team { flex: 1 1 auto; width: auto; min-width: 0; transition: border-radius 1s; display: flex; }
 .TeamBox .Team { border-right: 2px solid rgba(128,128,128,0.4); }
 .TeamBox [Team="1"] .Team { border-radius: 0 8px 0 0; }
 .TeamBox [Team="2"] .Team { border-radius: 0 0 8px 0; }
@@ -87,10 +89,11 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
   overflow: hidden;
   text-overflow: clip;
   white-space: nowrap;
-  font-size: 80%;
+  font-size: 100%;
   flex: 1 1 auto;
   min-width: 0;
   width: auto;
+  height: 1em;
   padding-left: 2%;
   border-left: 2px solid rgba(128,128,128,0.4);
   color: inherit;
@@ -140,9 +143,9 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
   0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; }
 }
 
-/* lineup / jammer area – matches team bar colour and text colour */
-.TeamBox .JammerWrapper { overflow: hidden; }
-.TeamBox .JammerBox { padding-right: 20px; width: calc(100% - 20px); height: 50%; text-align: right; font-size: 50%; border-radius: 0 8px 8px 0; background: #333; color: white; }
+/* lineup / jammer area – fixed-width right-side column */
+.TeamBox .JammerWrapper { overflow: hidden; flex: 0 0 9em; }
+.TeamBox .JammerBox { padding-right: 20px; width: calc(100% - 20px); height: 100%; text-align: right; font-size: 50%; border-radius: 0 8px 8px 0; background: #333; color: white; }
 [Team="1"] .JammerBox { background: var(--team1-bar) !important; color: var(--team1-text) !important; }
 [Team="2"] .JammerBox { background: var(--team2-bar) !important; color: var(--team2-text) !important; }
 .TeamBox.Lineups.UseLT .JammerBox { display: flex; }
@@ -151,7 +154,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .ShowJammers .JammerBox.Show, .Lineups.UseLT.PenaltyClocks .JammerBox { margin-left: 0; z-Index: -3; }
 .TeamBox .JammerBox { float: left; transition: margin-left 2s; }
 
-.TeamBox .JammerBox>div { font-size: 115%; padding: 0px 2px; min-height: 100%; flex: 1; display: flex; justify-content: space-around; text-transform: uppercase; letter-spacing: 0.02em; }
+.TeamBox .JammerBox>div { font-size: 85%; padding: 0px 2px; min-height: 100%; flex: 1; display: flex; justify-content: space-around; text-transform: uppercase; letter-spacing: 0.02em; }
 .TeamBox.Lineups.UseLT .JammerBox>div { border-right: solid rgba(255,255,255,0.25) 1px; }
 .TeamBox.Lineups.UseLT .JammerBox>:last-child>div { border-right: none; }
 .TeamBox.Lineups.UseLT .JammerBox .Penalized:not(.InBox) { background-color: var(--element-unserved-bg); color: var(--element-unserved-fg); }
@@ -279,7 +282,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 
 /* Roster */
 .RosterTeam .TeamLogo { margin-bottom: .5em; }
-.RosterTeam .Team .Skater { width: 48%; float: left; background: #222; color: #fff; overflow: hidden; font-size: 1.5em; line-height: 1.8em; }
+.RosterTeam .Team .Skater { width: 48%; float: left; background: #222; color: #fff; overflow: hidden; font-size: 0.9em; line-height: 1.8em; }
 .RosterTeam .Team .Skater:nth-child(odd)  { margin-right: 4%; }
 .RosterTeam .Team .Skater:nth-child(1)  .Number,
 .RosterTeam .Team .Skater:nth-child(2)  .Number,
@@ -308,7 +311,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .PenaltyTeam .NoShow { display: none; }
 .PenaltyTeam .TeamLogo { margin-bottom: .5em; }
 .PenaltyTeam .SortBox { border-radius: 10px; }
-.PenaltyTeam .Team .Skater { width: 100%; font-size: 1.2em; line-height: 1.4em; height: 1.4em; clear: both; }
+.PenaltyTeam .Team .Skater { width: 100%; font-size: 0.75em; line-height: 1.4em; height: 1.4em; clear: both; }
 .PenaltyTeam .Team .Skater:nth-child(odd)  { background: #2a2a2a; color: #fff; }
 .PenaltyTeam .Team .Skater:nth-child(even) { background: #333;    color: #fff; }
 .PenaltyTeam .Team .Number  { float: left; width: 7%; padding-left: 2em; padding-right: 1em; color: #ccc; min-height: 100%; text-align: right; }
