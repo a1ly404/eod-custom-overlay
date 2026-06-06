@@ -1,144 +1,131 @@
 /**
  * EoD Halftime – Sponsor Display
- * ─────────────────────────────────────────────────────────────────────────
- * Loads sponsor images from /images/sponsor_banner/ by parsing the Jetty
- * directory listing, then builds a continuously-scrolling horizontal strip.
  *
- * Behaviour:
- *   • 0 images  → placeholder text visible, no animation
- *   • 1 image   → centred statically, no animation
- *   • 2+ images → seamless infinite horizontal scroll (right → left)
+ * Sponsor behavior:
+ *   - Read sponsor images from CRG media binding in #Banners
+ *   - Shuffle once per page load
+ *   - Hard-cut to next image every 5 seconds (no animation)
+ *   - Apply image sizing classes (wide/tall) like intermission_sponsors.js
+ *   - Cycle forever, never stop
  *
- * The intermission clock ("TIME TO DERBY") is updated by CRG's built-in
- * sbDisplay/sbTimeString binding; JS only adds the urgency flash at < 30 s.
- *
- * Speed: PIXELS_PER_SECOND px/s (adjust below for slower/faster scroll).
+ * Clock behavior:
+ *   - Intermission clock is CRG-bound via sbContext/sbDisplay/sbClock
+ *   - JS adds urgency flash class when <= URGENT_THRESHOLD seconds
  */
 
+;(function () {
 'use strict';
 
-// ── Config ────────────────────────────────────────────────────────────────────
+if (window.__eodHalftimeInit) {
+  return;
+}
+window.__eodHalftimeInit = true;
 
-const SPONSOR_PATH      = '/images/sponsor_banner/';
-const IMG_EXTS          = /\.(png|jpg|jpeg|gif|webp|svg)(\?|$)/i;
-const PIXELS_PER_SECOND = 80;   // scroll speed — increase for faster slide
-const URGENT_THRESHOLD  = 30;   // seconds remaining before clock turns red
+const SPONSOR_DURATION_MS = 5000;
+const URGENT_THRESHOLD = 30;
 
-// ── Load sponsor images from Jetty directory listing ─────────────────────────
+let sponsorImages = [];
+let sponsorImgIndex = 0;
+let rotateTimer = null;
 
-async function loadSponsorImages() {
-  try {
-    const resp = await fetch(SPONSOR_PATH);
-    if (!resp.ok) return [];
+function shuffle(array) {
+  let currentIndex = array.length;
+  while (currentIndex !== 0) {
+    const randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+    const temp = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temp;
+  }
+  return array;
+}
 
-    const html  = await resp.text();
-    const links = [...html.matchAll(/href="([^"?#]+)"/gi)].map(m => m[1]);
-
-    return links
-      .filter(h => IMG_EXTS.test(h))
-      // href may be just a filename ("logo.png") or an absolute path
-      .map(h => h.startsWith('/') ? h : SPONSOR_PATH + h);
-  } catch (_) {
-    return [];
+function incrementSponsorImgIndex() {
+  if (sponsorImages.length > 1) {
+    sponsorImgIndex = (sponsorImgIndex + 1) % sponsorImages.length;
   }
 }
 
-// ── Build & start the scrolling sponsor strip ─────────────────────────────────
+function applySizing(imgEl) {
+  const parent = imgEl && imgEl.parentElement;
+  if (!parent || !imgEl || imgEl.naturalWidth === 0 || imgEl.naturalHeight === 0) return;
 
-/**
- * Measures the total pixel width of a track element's children
- * (ignoring its own padding/border).
- */
-function measureStripWidth(trackEl) {
-  // sum of child offsetWidths + gaps
-  const children = [...trackEl.children];
-  if (!children.length) return 0;
-  // Use getBoundingClientRect to get rendered width of each img
-  let total = 0;
-  const gap  = 80; // must match CSS gap
-  children.forEach(c => { total += c.getBoundingClientRect().width; });
-  total += gap * (children.length - 1);
-  return Math.ceil(total);
+  imgEl.classList.remove('wide', 'tall');
+  imgEl.style.marginTop = '0px';
+
+  const parentWidth = parent.clientWidth;
+  const parentHeight = parent.clientHeight;
+  const imageAspect = imgEl.naturalWidth / imgEl.naturalHeight;
+  const parentAspect = parentWidth / parentHeight;
+
+  if (parentAspect >= imageAspect) {
+    imgEl.classList.add('tall');
+  } else {
+    imgEl.classList.add('wide');
+    const adjustedHeight = (parentWidth / imgEl.naturalWidth) * imgEl.naturalHeight;
+    imgEl.style.marginTop = `${(parentHeight - adjustedHeight) / 2}px`;
+  }
 }
 
-function buildSponsorStrip(viewportEl, trackEl, images) {
-  const placeholder = document.getElementById('sponsorPlaceholder');
-
-  if (!images.length) {
-    // Keep placeholder; nothing to animate
-    return;
-  }
-
-  // Hide placeholder
-  if (placeholder) placeholder.classList.add('hidden');
-
-  // ── Inject images ──────────────────────────────────────────────────────────
-  const createImg = src => {
-    const img   = document.createElement('img');
-    img.src     = src;
-    img.alt     = '';
-    img.className = 'SponsorImg';
-    return img;
-  };
-
-  if (images.length === 1) {
-    // Single sponsor: show centred, static
-    trackEl.style.justifyContent = 'center';
-    trackEl.style.width          = '100%';
-    trackEl.appendChild(createImg(images[0]));
-    return;
-  }
-
-  // Multiple sponsors: build scrolling strip
-  // First pass: add all images so we can measure rendered widths
-  images.forEach(src => trackEl.appendChild(createImg(src)));
-
-  // Wait one frame for images to be laid out (sizes may still be 0 until
-  // load events, but the DOM is in place; we'll recalculate on first load)
-  window.requestAnimationFrame(() => {
-    window.requestAnimationFrame(() => startScrollAnimation(trackEl, images, createImg));
-  });
+function getBannerSources() {
+  return $('#Banners [File]')
+    .map(function () { return $(this).attr('src'); })
+    .get()
+    .filter(src => typeof src === 'string' && src.trim() !== '');
 }
 
-function startScrollAnimation(trackEl, images, createImg) {
-  // Wait for at least the first image to load so we have real dimensions
-  const firstImg = trackEl.querySelector('img');
-  const doStart  = () => {
-    // Measure the natural strip
-    const naturalWidth = measureStripWidth(trackEl);
-    if (naturalWidth === 0) {
-      // Still no dimensions — retry after a short delay
-      setTimeout(() => startScrollAnimation(trackEl, images, createImg), 200);
+function setPlaceholderVisible(visible) {
+  const ph = document.getElementById('sponsorPlaceholder');
+  if (!ph) return;
+  ph.classList.toggle('hidden', !visible);
+}
+
+function hardCutToNextImage(currentImg) {
+  // Hard cut: directly swap src and reapply sizing, no animation
+  applySizing(currentImg);
+}
+
+function scheduleNextRotation(currentImg) {
+  rotateTimer = window.setTimeout(function tick() {
+    if (sponsorImages.length <= 1) {
+      rotateTimer = window.setTimeout(tick, SPONSOR_DURATION_MS);
       return;
     }
 
-    // Duplicate strip for seamless loop: append clones
-    images.forEach(src => {
-      const clone = createImg(src);
-      clone.setAttribute('aria-hidden', 'true');
-      trackEl.appendChild(clone);
-    });
+    // Hard cut to next image
+    const nextSrc = sponsorImages[sponsorImgIndex];
+    currentImg.onload = function () {
+      hardCutToNextImage(currentImg);
+    };
+    currentImg.src = nextSrc;
+    incrementSponsorImgIndex();
 
-    // Set CSS variables on the track
-    //   --slide-dist: how far to translate (= -naturalWidth - gap)
-    //   --slide-dur:  seconds to traverse that distance at PIXELS_PER_SECOND px/s
-    const gap       = 80; // must match CSS gap
-    const slideDist = naturalWidth + gap; // one full strip width + one gap
-    const dur       = slideDist / PIXELS_PER_SECOND;
+    rotateTimer = window.setTimeout(tick, SPONSOR_DURATION_MS);
+  }, SPONSOR_DURATION_MS);
+}
 
-    trackEl.style.setProperty('--slide-dist', `-${slideDist}px`);
-    trackEl.style.setProperty('--slide-dur',  `${dur.toFixed(1)}s`);
-    trackEl.classList.add('running');
-  };
+function initSponsors() {
+  sponsorImages = shuffle(getBannerSources().slice());
 
-  if (firstImg && firstImg.complete) {
-    doStart();
-  } else if (firstImg) {
-    firstImg.addEventListener('load',  doStart, { once: true });
-    firstImg.addEventListener('error', doStart, { once: true }); // don't hang on broken img
-  } else {
-    doStart();
+  const currentImg = document.querySelector('#SponsorBox img.CurrentImg');
+  if (!currentImg) return;
+
+  if (!sponsorImages.length) {
+    setPlaceholderVisible(true);
+    return;
   }
+
+  setPlaceholderVisible(false);
+
+  currentImg.onload = function () { applySizing(currentImg); };
+  currentImg.src = sponsorImages[sponsorImgIndex];
+  incrementSponsorImgIndex();
+
+  window.addEventListener('resize', function () {
+    applySizing(currentImg);
+  });
+
+  scheduleNextRotation(currentImg);
 }
 
 // ── Clock urgency flash ───────────────────────────────────────────────────────
@@ -160,12 +147,27 @@ function watchClock() {
 
 // ── CRG WebSocket init ────────────────────────────────────────────────────────
 
-WS.AfterLoad(async function () {
+function bootstrap() {
   watchClock();
+  // Give sbForeach a beat to populate #Banners from CRG media list.
+  window.setTimeout(initSponsors, 200);
+}
 
-  const viewportEl = document.getElementById('sponsorViewport');
-  const trackEl    = document.getElementById('sponsorTrack');
-  const images     = await loadSponsorImages();
+if (window.WS && typeof window.WS.AfterLoad === 'function') {
+  window.WS.AfterLoad(bootstrap);
+} else {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+  } else {
+    bootstrap();
+  }
+}
 
-  buildSponsorStrip(viewportEl, trackEl, images);
+window.addEventListener('beforeunload', function () {
+  if (rotateTimer) {
+    window.clearTimeout(rotateTimer);
+    rotateTimer = null;
+  }
 });
+
+})();

@@ -10,6 +10,8 @@
 /* ── Reset ────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body { width: 100%; height: 100%; }
+
 /* ── Body ─────────────────────────────────────────────────────────────── */
 body {
   font-family: 'InterDisplay', 'Inter', 'Liberation Sans', sans-serif;
@@ -18,8 +20,8 @@ body {
   letter-spacing: -0.01em;
   background: #0a0a0a;
   color: #fff;
-  width:  1920px;
-  height: 1080px;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -57,7 +59,7 @@ body {
   justify-content: center;
   gap: 32px;
   /* slight horizontal padding so images don't touch edges */
-  padding: 0 60px;
+  padding: 0;
   min-height: 0; /* allow flex child to shrink */
 }
 
@@ -69,43 +71,38 @@ body {
   white-space: nowrap;
 }
 
-/* ── Sponsor viewport (clips the scrolling track) ─────────────────────── */
-.SponsorViewport {
+/* ── Sponsor stage (fullscreen within middle pane) ───────────────────── */
+.SponsorBox {
   width: 100%;
-  /* height shrinks to fill available sponsor area space */
   flex: 1;
   min-height: 0;
-  max-height: 560px;
   position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
-/* ── Sponsor track (JS sets width & starts animation) ─────────────────── */
-.SponsorTrack {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  /* width is set by JS to 2× the natural strip width */
-  will-change: transform;
-  gap: 80px;          /* spacing between sponsor logos */
-  padding: 0 40px;    /* so first/last logo aren't flush with edge */
-  flex-shrink: 0;
-}
-
-/* ── Each sponsor image ───────────────────────────────────────────────── */
+/* Single image that hard-cuts to next sponsor */
 .SponsorImg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
   height: 100%;
-  max-height: 400px;
-  width: auto;
-  max-width: 640px;
   object-fit: contain;
-  flex-shrink: 0;
-  /* slight brightness boost in case logos are white-on-transparent */
+  object-position: center;
   filter: brightness(1.05) drop-shadow(0 2px 16px rgba(255,255,255,0.06));
 }
+
+.SponsorImg.CurrentImg { z-index: 2; }
+.SponsorImg.NextImg    { z-index: 1; display: none; }
+
+/* intermission_sponsors sizing classes */
+.SponsorImg.tall { width: auto; height: 100%; left: 50%; transform: translateX(-50%); }
+.SponsorImg.wide { width: 100%; height: auto; top: 50%; transform: translateY(-50%); }
+
+.SponsorHidden { display: none !important; }
 
 /* ── Placeholder (shown when no images) ───────────────────────────────── */
 .SponsorPlaceholder {
@@ -124,16 +121,6 @@ body {
   color: #2a2a2a;
   text-transform: uppercase;
   text-align: center;
-}
-
-/* ── Sliding animation — JS adds .running to .SponsorTrack ───────────── */
-@keyframes sponsorSlide {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(var(--slide-dist)); }
-}
-
-.SponsorTrack.running {
-  animation: sponsorSlide var(--slide-dur, 20s) linear infinite;
 }
 
 /* ── Clock footer ───────────────────────────────────────────────────── */
