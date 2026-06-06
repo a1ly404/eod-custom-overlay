@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EoD Halftime – Sponsor Display</title>
+  <script type="text/javascript" src="/external/jquery/jquery.js"></script>
+  <script type="text/javascript" src="/json/core.js"></script>
+  <link rel="stylesheet" href="index.css" />
+  <script type="text/javascript" src="index.js"></script>
+</head>
+<body class="halftime-sponsor" sbContext="ScoreBoard.CurrentGame">
+
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <header class="HalftimeHeader">
+    <span class="HalftimeLabel">HALFTIME</span>
+  </header>
+
+  <!-- ── Sponsor area ───────────────────────────────────────────────── -->
+  <section class="SponsorArea">
+    <p class="SponsorLabel">THANK YOU TO OUR SPONSORS</p>
+
+    <!-- Viewport clips the scrolling track -->
+    <div class="SponsorViewport" id="sponsorViewport">
+      <!-- JS injects <img> elements into this track and starts animation -->
+      <div class="SponsorTrack" id="sponsorTrack"></div>
+
+      <!-- Shown only when sponsor_banner/ folder is empty -->
+      <div class="SponsorPlaceholder" id="sponsorPlaceholder">
+        <span class="PlaceholderText">PROUDLY SUPPORTED BY OUR SPONSORS</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Intermission clock footer ──────────────────────────────────── -->
+  <footer class="ClockFooter">
+    <div class="ClockBlock">
+      <div class="ClockLabel">Intermission</div>
+      <div class="ClockValue sbClock"
+           id="intermissionClock"
+           sbContext="Clock(Intermission)"
+           sbDisplay="Time, Direction: sbToTime">—:——</div>
+    </div>
+  </footer>
+
+</body>
+</html>

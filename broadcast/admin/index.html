@@ -149,6 +149,11 @@
 
       <div id="Scaling" class="Panel">
         <h2>Scaling</h2>
+        <div style="margin-bottom: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+          <button onclick="applyScalingPreset(65)" style="flex: 1; min-width: 80px;">720p (65%)</button>
+          <button onclick="applyScalingPreset(100)" style="flex: 1; min-width: 80px;">1080p (100%)</button>
+          <button onclick="applyScalingPreset(150)" style="flex: 1; min-width: 80px;">4K (150%)</button>
+        </div>
         <input sbControl="$.Scaling" type="range" min="50" max="200" /><br />
         <input sbControl="$.Scaling" type="number" /> %
       </div>
