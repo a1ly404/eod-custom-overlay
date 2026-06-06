@@ -19,15 +19,18 @@
   <section class="SponsorArea">
     <p class="SponsorLabel">THANK YOU TO OUR SPONSORS</p>
 
-    <!-- Viewport clips the scrolling track -->
-    <div class="SponsorViewport" id="sponsorViewport">
-      <!-- JS injects <img> elements into this track and starts animation -->
-      <div class="SponsorTrack" id="sponsorTrack"></div>
-
-      <!-- Shown only when sponsor_banner/ folder is empty -->
-      <div class="SponsorPlaceholder" id="sponsorPlaceholder">
-        <span class="PlaceholderText">PROUDLY SUPPORTED BY OUR SPONSORS</span>
+    <!-- Single sponsor image that hard-cuts to next every 5s -->
+    <div class="SponsorBox" id="SponsorBox">
+      <img class="SponsorImg CurrentImg" />
+      <!-- Hidden: CRG media binding source for sponsor banners -->
+      <div id="Banners" hidden sbContext="/ScoreBoard.Media.Format(images).Type(sponsor_banner)">
+        <div sbForeach="File:: name: resort=Name" sbAttr="src: Src"></div>
       </div>
+    </div>
+
+    <!-- Shown only when sponsor_banner/ folder is empty -->
+    <div class="SponsorPlaceholder" id="sponsorPlaceholder">
+      <span class="PlaceholderText">PROUDLY SUPPORTED BY OUR SPONSORS</span>
     </div>
   </section>
 

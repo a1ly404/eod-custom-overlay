@@ -68,10 +68,12 @@ function applySizing(imgEl) {
 }
 
 function getBannerSources() {
-  return $('#Banners [File]')
+  const sources = $('#Banners [src]')
     .map(function () { return $(this).attr('src'); })
     .get()
     .filter(src => typeof src === 'string' && src.trim() !== '');
+  console.log('EoD Halftime: getBannerSources found', sources.length, 'sources:', sources);
+  return sources;
 }
 
 function setPlaceholderVisible(visible) {
@@ -108,9 +110,15 @@ function initSponsors() {
   sponsorImages = shuffle(getBannerSources().slice());
 
   const currentImg = document.querySelector('#SponsorBox img.CurrentImg');
-  if (!currentImg) return;
+  if (!currentImg) {
+    console.error('EoD Halftime: Could not find #SponsorBox img.CurrentImg');
+    return;
+  }
+
+  console.log('EoD Halftime: Found sponsor images:', sponsorImages.length);
 
   if (!sponsorImages.length) {
+    console.warn('EoD Halftime: No sponsor images found from CRG media binding');
     setPlaceholderVisible(true);
     return;
   }
@@ -148,6 +156,7 @@ function watchClock() {
 // ── CRG WebSocket init ────────────────────────────────────────────────────────
 
 function bootstrap() {
+  console.log('EoD Halftime: Initializing...');
   watchClock();
   // Give sbForeach a beat to populate #Banners from CRG media list.
   window.setTimeout(initSponsors, 200);
