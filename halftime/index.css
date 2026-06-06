@@ -1,0 +1,181 @@
+/* =====================================================
+   EoD Halftime – Sponsor Display
+   ─────────────────────────────────────────────────────
+   Full-screen dark overlay:
+     - Header:  "HALFTIME" badge
+     - Centre:  horizontally sliding sponsor banner
+     - Footer:  "TIME TO DERBY  ·  MM:SS" clock
+   ===================================================== */
+
+/* ── Reset ────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Body ─────────────────────────────────────────────────────────────── */
+body {
+  font-family: 'InterDisplay', 'Inter', 'Liberation Sans', sans-serif;
+  font-weight: bold;
+  font-stretch: condensed;
+  letter-spacing: -0.01em;
+  background: #0a0a0a;
+  color: #fff;
+  width:  1920px;
+  height: 1080px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* header 120px · sponsor flex 1 · clock 120px */
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+.HalftimeHeader {
+  flex: 0 0 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.HalftimeLabel {
+  font-size: 2em;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #fff;
+  /* subtle separation line below */
+  padding-bottom: 0.2em;
+  border-bottom: 2px solid rgba(255,255,255,0.15);
+}
+
+/* ── Sponsor area ─────────────────────────────────────────────────────── */
+.SponsorArea {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  /* slight horizontal padding so images don't touch edges */
+  padding: 0 60px;
+  min-height: 0; /* allow flex child to shrink */
+}
+
+.SponsorLabel {
+  font-size: 0.95em;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* ── Sponsor viewport (clips the scrolling track) ─────────────────────── */
+.SponsorViewport {
+  width: 100%;
+  /* height shrinks to fill available sponsor area space */
+  flex: 1;
+  min-height: 0;
+  max-height: 560px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Sponsor track (JS sets width & starts animation) ─────────────────── */
+.SponsorTrack {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  /* width is set by JS to 2× the natural strip width */
+  will-change: transform;
+  gap: 80px;          /* spacing between sponsor logos */
+  padding: 0 40px;    /* so first/last logo aren't flush with edge */
+  flex-shrink: 0;
+}
+
+/* ── Each sponsor image ───────────────────────────────────────────────── */
+.SponsorImg {
+  height: 100%;
+  max-height: 400px;
+  width: auto;
+  max-width: 640px;
+  object-fit: contain;
+  flex-shrink: 0;
+  /* slight brightness boost in case logos are white-on-transparent */
+  filter: brightness(1.05) drop-shadow(0 2px 16px rgba(255,255,255,0.06));
+}
+
+/* ── Placeholder (shown when no images) ───────────────────────────────── */
+.SponsorPlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.SponsorPlaceholder.hidden { display: none; }
+
+.PlaceholderText {
+  font-size: 1.6em;
+  letter-spacing: 0.4em;
+  color: #2a2a2a;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* ── Sliding animation — JS adds .running to .SponsorTrack ───────────── */
+@keyframes sponsorSlide {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(var(--slide-dist)); }
+}
+
+.SponsorTrack.running {
+  animation: sponsorSlide var(--slide-dur, 20s) linear infinite;
+}
+
+/* ── Clock footer ─────────────────────────────────────────────────────── */
+.ClockFooter {
+  flex: 0 0 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+  width: 100%;
+  /* subtle separator above */
+  border-top: 2px solid rgba(255,255,255,0.08);
+}
+
+.ClockLabel {
+  font-size: 1.3em;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #777;
+}
+
+.ClockSep {
+  font-size: 1.2em;
+  color: #444;
+}
+
+.ClockValue {
+  font-size: 3.6em;
+  letter-spacing: 0.08em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5ch;
+  text-align: center;
+}
+
+/* ── Urgency flash when clock < 30 s ──────────────────────────────────── */
+.ClockValue.urgent {
+  color: #ff4444;
+  animation: clockUrgent 0.7s infinite steps(2);
+}
+
+@keyframes clockUrgent {
+  0%   { opacity: 1;    }
+  50%  { opacity: 0.35; }
+}

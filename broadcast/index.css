@@ -62,19 +62,22 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 
 /***************
  * teams box
+ * Optimized for 720p (1280×720) broadcast display.
+ * Base font scaled from 1.8em to 1.2em. Team names limited to
+ * ~20 characters ("Skatelesaurus Wrecks") with text-overflow: ellipsis.
  **************/
-.TeamBox { top: 2%; left: 5rem; font-size: 1.8em; line-height: 100%; width: calc(100% - 25rem); }
+.TeamBox { top: 2%; left: 5rem; font-size: 1.2em; line-height: 100%; width: calc(100% - 25rem); }
 .TeamBox.Lineups.UseLT:not(.ShowNames) { max-width: 35em; }
-.TeamBox:not(.Lineups.UseLT) { width: 23em; }
+.TeamBox:not(.Lineups.UseLT) { width: 20em; }
 
 /* indicator – background and text match the team bar. Overrides CRG's sbCss inline styles. */
-.TeamBox .Indicator { width: 1.6em; height: 1.3em; text-align: center; font-size: 75%; }
+.TeamBox .Indicator { width: 1.3em; height: 1.1em; text-align: center; font-size: 75%; }
 .TeamBox [Team="1"] .Indicator { border-radius: 8px 0 0 0; background: var(--team1-bar) !important; color: var(--team1-text) !important; }
 .TeamBox [Team="2"] .Indicator { border-radius: 0 0 0 8px; background: var(--team2-bar) !important; color: var(--team2-text) !important; }
 /* Indicator is always visible — UseLT / lineup mode does not hide it */
 
 /* main area – background comes from .barBackground above */
-.TeamBox .Team { width: 12em; float: left; transition: border-radius 1s; }
+.TeamBox .Team { width: 9em; float: left; transition: border-radius 1s; }
 .TeamBox .Team { border-right: 2px solid rgba(128,128,128,0.4); }
 .TeamBox [Team="1"] .Team { border-radius: 0 8px 0 0; }
 .TeamBox [Team="2"] .Team { border-radius: 0 0 8px 0; }
@@ -82,12 +85,13 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .TeamBox.Lineups.UseLT [Team="2"] .Team { border-radius: 0 0 0 8px; }
 .TeamBox:not(.Lineups.UseLT).ShowJammers.InJam .Team { border-radius: 0; }
 
-.TeamBox .Team .Name  { text-align: left; overflow: hidden; font-size: 80%; width: 67%; padding-left: 2%; border-left: 2px solid rgba(128,128,128,0.4); color: inherit; }
-.TeamBox .Team .Score { width: 18%; text-align: right; padding-right: .1em; font-size: 90%; color: inherit; }
-.TeamBox .Team .Mini  { width: 8%; font-size: 45%; line-height: 99%; padding-top: 12px; }
+/* Team name: 20 char limit with ellipsis for overflow (720p optimization) */
+.TeamBox .Team .Name  { text-align: left; overflow: hidden; text-overflow: ellipsis; font-size: 75%; width: 65%; padding-left: 2%; border-left: 2px solid rgba(128,128,128,0.4); color: inherit; white-space: nowrap; }
+.TeamBox .Team .Score { width: 18%; text-align: right; padding-right: .1em; font-size: 85%; color: inherit; overflow: hidden; }
+.TeamBox .Team .Mini  { width: 10%; font-size: 40%; line-height: 99%; padding-top: 12px; }
 .TeamBox .Team .Mini .JamScore { width: 100%; text-align: center; color: inherit; }
-.TeamBox .Team .DotTimeouts { width: 3%; padding-top: 2px; }
-.TeamBox .Team .Dot { width: .15em; height: .15em; margin: .05em 0 0 0; }
+.TeamBox .Team .DotTimeouts { width: 5%; padding-top: 2px; }
+.TeamBox .Team .Dot { width: .12em; height: .12em; margin: .05em 0 0 0; }
 .TeamBox .Team .Dot, .Dot.Current { border-radius: 100%; }
 /* Dots use the same fully opaque foreground colour as the team bar text
    (white on dark bars, black on light bars) to preserve WCAG contrast. */
@@ -102,7 +106,7 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 
 /* lineup / jammer area – matches team bar colour and text colour */
 .TeamBox .JammerWrapper { overflow: hidden; }
-.TeamBox .JammerBox { padding-right: 20px; width: calc(100% - 20px); height: 50%; text-align: right; font-size: 50%; border-radius: 0 8px 8px 0; background: #333; color: white; }
+.TeamBox .JammerBox { padding-right: 15px; width: calc(100% - 15px); height: 50%; text-align: right; font-size: 40%; border-radius: 0 8px 8px 0; background: #333; color: white; overflow: hidden; }
 [Team="1"] .JammerBox { background: var(--team1-bar) !important; color: var(--team1-text) !important; }
 [Team="2"] .JammerBox { background: var(--team2-bar) !important; color: var(--team2-text) !important; }
 .TeamBox.Lineups.UseLT .JammerBox { display: flex; }
@@ -111,12 +115,12 @@ div.AnimatedPanel.AnimationDelay { transition: transform 1s ease-in-out .3s; }
 .ShowJammers .JammerBox.Show, .Lineups.UseLT.PenaltyClocks .JammerBox { margin-left: 0; z-Index: -3; }
 .TeamBox .JammerBox { float: left; transition: margin-left 2s; }
 
-.TeamBox .JammerBox>div { font-size: 115%; padding: 0px 2px; min-height: 100%; flex: 1; display: flex; justify-content: space-around; text-transform: uppercase; letter-spacing: 0.02em; }
+.TeamBox .JammerBox>div { font-size: 100%; padding: 0px 1px; min-height: 100%; flex: 1; display: flex; justify-content: space-around; text-transform: uppercase; letter-spacing: 0.02em; overflow: hidden; }
 .TeamBox.Lineups.UseLT .JammerBox>div { border-right: solid rgba(255,255,255,0.25) 1px; }
 .TeamBox.Lineups.UseLT .JammerBox>:last-child>div { border-right: none; }
 .TeamBox.Lineups.UseLT .JammerBox .Penalized:not(.InBox) { background-color: var(--element-unserved-bg); color: var(--element-unserved-fg); }
 .TeamBox.Lineups.UseLT .JammerBox .InBox { background-color: var(--element-inbox-bg); color: var(--element-inbox-fg); }
-.TeamBox .JammerBox .Penalties:not(:empty) { padding-left: 5px; }
+.TeamBox .JammerBox .Penalties:not(:empty) { padding-left: 5px; overflow: hidden; text-overflow: ellipsis; }
 .TeamBox.Lineups.UseLT .JammerBox .Jamming:before { content: "★"; }
 /* HasLead colour is overridden per-team by wcagCheckLeadFlash() in index.js
    based on WCAG 4.5:1 contrast against the team bar colour.

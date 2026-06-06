@@ -74,6 +74,18 @@ function applyCustomColour(team, fgHex) {
 }
 
 // ─────────────────────────────────────────────
+// Scaling presets for common resolutions
+// Apply scaling percentage via WS and update UI
+// ─────────────────────────────────────────────
+function applyScalingPreset(percentage) {
+  WS.Set('ScoreBoard.Settings.Setting(Overlay.Interactive.Scaling)', String(percentage));
+  var numInput = document.querySelector('#Scaling input[type="number"]');
+  var rangeInput = document.querySelector('#Scaling input[type="range"]');
+  if (numInput) numInput.value = percentage;
+  if (rangeInput) rangeInput.value = percentage;
+}
+
+// ─────────────────────────────────────────────
 // Original admin JS (unchanged from CRG overlay)
 // ─────────────────────────────────────────────
 var nextPanel = '';
